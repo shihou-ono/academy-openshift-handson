@@ -24,7 +24,7 @@ Web コンソールからテンプレートを使ってアプリケーション�
 URL: https://console-openshift-console.apps-crc.testing
 ```
 
-SSHポートフォワードが機能していない場合は、以下コマンドで再度ポートフォワーディングを実行してください。
+SSHポートフォワードが機能していない場合は、以下コマンドで再度ポートフォワーディングを実行してください。\
 ※xxx.xxx.xxx.xxx はAzure VMのパブリックIPを指定する。
 
 ```
@@ -41,7 +41,7 @@ user01@xxx.xxx.xxx.xxx's password:
 ※「パスワードを変更してください」の画面が出る場合がありますが、「OK」をクリックします。
 
 
-**Step 3** パースペクティブが「Administrator」になっていることを確認します。
+**Step 3** パースペクティブが「Administrator」になっていることを確認します。\
 ※パースペクティブが「Administrator」になっていない方は「Administrator」に変更してください。
 
 ![3-1-2.png](./img/3-1-2.png)
@@ -60,7 +60,7 @@ user01@xxx.xxx.xxx.xxx's password:
 
 ![3-1-5.png](./img/3-1-5.png)
 
-**Step 3** パースペクティブを「Administrator」から「developer」に変更します。
+**Step 3** パースペクティブを「Administrator」から「Developer」に変更します。
 
 ![3-1-6.png](./img/3-1-6.png)
 
@@ -99,7 +99,7 @@ user01@xxx.xxx.xxx.xxx's password:
 
 確認したURLのホスト名の部分を手元端末のhostsファイルに追記します。
 
-- 追記例
+[追記例]
 ```
 127.0.0.1 jenkins-jenkins-n-sakamaki.apps-crc.testing
 ```
@@ -167,7 +167,7 @@ Template から Jenkins がデプロイできたところで、Web UI につい�
 
 ![3-2-9.png](./img/3-2-9.png)
 
-「Details」、「YAML」、「Environment」、「Events」には DeploymentConfig と同じように今度は Pod の情報が表示されます。crc では表示されませんが、メトリクス情報が取得できるようになると「Metrics」に各リソースのメトリクスのグラフが表示されます。
+「Details」、「YAML」、「Environment」、「Events」には DeploymentConfig と同じように今度は Pod の情報が表示されます。今回は表示されませんが、メトリクス情報が取得できるようになると「Metrics」に各リソースのメトリクスのグラフが表示されます。
 
 ![3-2-10.png](./img/3-2-10.png)
 
@@ -181,7 +181,7 @@ Template から Jenkins がデプロイできたところで、Web UI につい�
 
 Web UI についての確認は以上ですが、次に移る前にGUIで作成したjenkinsプロジェクトを削除しておきます。
 
-**Step 4** パースペクティブを「developer」から「Administrator」に変更します。
+**Step 4** パースペクティブを「Developer」から「Administrator」に変更します。
 
 ![3-2-13.png](./img/3-2-13.png)
 
@@ -197,6 +197,7 @@ Web UI についての確認は以上ですが、次に移る前にGUIで作成�
 今度は CLI から、Template を操作していきます。
 
 **Step 1** ```oc login``` で ```kubeadmin``` アカウントでログインし、既存の Template を確認します。<br>
+※カレントプロジェクトが自身が作成したプロジェクトになっていることを確認してください。
 
 ```
 $ oc login -u kubeadmin
@@ -294,28 +295,21 @@ service/jenkins2 created
 
 $ oc get all
 NAME                    READY   STATUS      RESTARTS   AGE
-pod/jenkins-1-deploy    0/1     Completed   0          25m
-pod/jenkins-1-nt6zz     1/1     Running     0          25m
-pod/jenkins2-1-deploy   0/1     Completed   0          7m25s
-pod/jenkins2-1-zjk5f    1/1     Running     0          7m22s
+pod/jenkins2-1-deploy   0/1     Completed   0          66s
+pod/jenkins2-1-tlm67    1/1     Running     0          62s
 
 NAME                               DESIRED   CURRENT   READY   AGE
-replicationcontroller/jenkins-1    1         1         1       25m
-replicationcontroller/jenkins2-1   1         1         1       7m26s
+replicationcontroller/jenkins2-1   1         1         1       66s
 
-NAME                    TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
-service/jenkins2-jnlp   ClusterIP   172.30.124.69    <none>        50000/TCP   7m26s
-service/jenkins         ClusterIP   172.30.93.127    <none>        80/TCP      25m
-service/jenkins-jnlp    ClusterIP   172.30.140.126   <none>        50000/TCP   25m
-service/jenkins2        ClusterIP   172.30.123.25    <none>        80/TCP      7m26s
+NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
+service/jenkins2        ClusterIP   10.217.5.109   <none>        80/TCP      67s
+service/jenkins2-jnlp   ClusterIP   10.217.5.158   <none>        50000/TCP   67s
 
 NAME                                          REVISION   DESIRED   CURRENT   TRIGGERED BY
-deploymentconfig.apps.openshift.io/jenkins    1          1         1         config,image(jenkins:2)
 deploymentconfig.apps.openshift.io/jenkins2   1          1         1         config,image(jenkins:2)
 
-NAME                                HOST/PORT     PATH   SERVICES   PORT    TERMINATION     WILDCARD
-route.route.openshift.io/jenkins    jenkins-jenkins.2886795277-80-host20nc.environments.katacoda.com           jenkins    <all>   edge/Redirect   None
-route.route.openshift.io/jenkins2   jenkins2-jenkins.2886795277-80-host20nc.environments.katacoda.com          jenkins2   <all>   edge/Redirect   None```
+NAME                                HOST/PORT                              PATH   SERVICES   PORT    TERMINATION     WILDCARD
+route.route.openshift.io/jenkins2   jenkins2-n-sakamaki.apps-crc.testing          jenkins2   <all>   edge/Redirect   None
 ```
 
 CLIの操作により Template から Jenkins をデプロイできたことが確認できました。

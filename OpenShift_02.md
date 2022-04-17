@@ -230,7 +230,7 @@ Pod 作成が確認できたところで、今度は DeploymentConfig を作成�
 $ oc adm policy add-scc-to-user anyuid -z default
 clusterrole.rbac.authorization.k8s.io/system:openshift:scc:anyuid added: "default"
 
-$ oc create dc nginx --image=nginx
+$ oc create dc nginx --image=nginx --save-config
 deploymentconfig.apps.openshift.io/nginx created
 
 $ oc get po
@@ -522,23 +522,23 @@ $ oc expose dc nginx
 service/nginx exposed
 
 $ oc get svc
-NAME    TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
-nginx   ClusterIP   10.217.4.62   <none>        80/TCP    4s
+NAME    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+nginx   ClusterIP   10.217.5.116   <none>        80/TCP    6s
 
 $ oc describe svc nginx
 Name:              nginx
-Namespace:         myproject
+Namespace:         n-sakamaki
 Labels:            <none>
 Annotations:       <none>
 Selector:          deployment-config.name=nginx
 Type:              ClusterIP
 IP Family Policy:  SingleStack
 IP Families:       IPv4
-IP:                10.217.4.62
-IPs:               10.217.4.62
+IP:                10.217.5.116
+IPs:               10.217.5.116
 Port:              <unset>  80/TCP
 TargetPort:        80/TCP
-Endpoints:         10.217.0.98:80
+Endpoints:         10.217.0.87:80
 Session Affinity:  None
 Events:            <none>
 ```
@@ -578,7 +578,7 @@ Weight:         100 (100%)
 Endpoints:      10.217.0.83:80
 ```
 
-**Step 4** 前 Step の「oc get route」で出力されている「HOST/PORT」のURLをブラウザでアクセスしてみます。
+**Step 4** 前 Step の「oc get route」で出力されている「HOST/PORT」のURLにブラウザからアクセスしてみます。
 
 手元端末のhostsファイルにnginxアクセス用のホスト名を追加します。
 
@@ -595,7 +595,7 @@ URL例: http://nginx-n-sakamaki.apps-crc.testing
 
 ![2-5-1.jpg](./img/2-5-1.jpg)
 
-アクセスできない場合は、再度SSHポートフォワーディングを実行してみてください。
+アクセスできない場合は、再度SSHポートフォワーディングを実行してみてください。\
 ※xxx.xxx.xxx.xxx はAzure VMのパブリックIPを指定する。
 ```
 ssh user01@xxx.xxx.xxx.xxx -N -L 443:192.168.130.11:443 -L 80:192.168.130.11:80
@@ -721,7 +721,7 @@ total 8
 **Step 6** nginx Pod の index.html ファイルをコピーしてPVに格納します。まずは、Pod 内のファイルをローカルにコピーします。
 
 ```
-POD_NAME=$(oc get po -l deploymentconfig=nginx -o=jsonpath={.items[*].metadata.name})
+$ POD_NAME=$(oc get po -l deploymentconfig=nginx -o=jsonpath={.items[*].metadata.name})
 
 $ oc cp $POD_NAME:/usr/share/nginx/html/index.html index.html
 tar: Removing leading `/' from member names
@@ -748,7 +748,7 @@ vi pvc.yaml
 以下を入力します。
 
 ```
------
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -796,7 +796,7 @@ vi nginx.yaml
       - image: nginx
         name: nginx
         resources: {}
-        ports:                                     #ここから追加
+        ports:                                     # ここから追加
         - containerPort: 80
         volumeMounts:
         - name: claim-volume
@@ -811,7 +811,7 @@ vi nginx.yaml
       volumes:
       - name: claim-volume
         persistentVolumeClaim:
-          claimName: pvc-nginx                    #ここまで追加
+          claimName: pvc-nginx                    # ここまで追加
   test:
 ・・・
 ```
@@ -831,7 +831,6 @@ Note
 
 ```
 $ oc apply -f nginx.yaml
-Warning: resource deploymentconfigs/nginx is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by oc apply. oc apply should only be used on resources created declaratively by either oc create --save-config or oc apply. The missing annotation will be patched automatically.
 deploymentconfig.apps.openshift.io/nginx configured
 
 $ oc get po
@@ -906,6 +905,10 @@ NAME    HOST/PORT                           PATH   SERVICES   PORT   TERMINATION
 nginx   nginx-n-sakamaki.apps-crc.testing          nginx      80                   None
 ```
 
+```
+URL例: http://nginx-n-sakamaki.apps-crc.testing
+```
+
 「HOST/PORT」で指定された URL にアクセスします。<br>
 また、URL 末尾に「/index2.html」でもアクセスできることを確認します。
 
@@ -953,11 +956,15 @@ total 8
 -rw-rw-r--. 1 1000 1000 615 Apr  1 09:12 index2.html
 ```
 
-**Step 15** 最後に nginx を削除します。
-※お時間に余裕ができた人は、nginxを削除する前に「2.7. get/describe 色々」のセクションを試してみてください。
+**Step 15** 最後にこれまでに作成したオブジェクトを削除します。\
+※お時間に余裕ができた人は、オブジェクトを削除する前に「2.7. get/describe 色々」のセクションを試してみてください。
 
 ```
-$ oc delete -f dc.yaml
+$ oc delete -f nginx.yaml ; \
+oc delete -f pvc.yaml ; \
+oc delete route nginx ; \
+oc delete service nginx
+↑この行までコピペして実行してください
 ```
 
 <div style="page-break-before:always"></div>
