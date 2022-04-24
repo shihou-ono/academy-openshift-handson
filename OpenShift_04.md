@@ -317,7 +317,7 @@ ssh user01@xxx.xxx.xxx.xxx -N -L 443:192.168.130.11:443 -L 80:192.168.130.11:80
 user01@xxx.xxx.xxx.xxx's password:
 ```
 
-ブラウザでoc get routeで確認したURLにアクセスすると以下のように表示されます。
+`oc get route`で確認したURLにブラウザからアクセスすると以下のように表示されます。
 ```
 URL例: http://hello-nodejs-n-sakamaki.apps-crc.testing
 ```
