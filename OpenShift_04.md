@@ -111,7 +111,8 @@ node_modules
 npm-debug.log
 ```
 
-**Step 2** 準備ができたので、早速イメージのビルドを行っていきます。
+**Step 2** 準備ができたので、早速イメージのビルドを行っていきます。\
+`kubeadmin`でログインし、カレントプロジェクトをご自身のプロジェクトに変更してください。\
 ※<your_name>はご自身のプロジェクト名を入力してください。
 
 ```
@@ -121,8 +122,8 @@ $ oc project <your_name>
 Using project "n-sakamaki" on server "https://api.crc.testing:6443".
 ```
 
-ビルド用のオブジェクト（BuildConfig）を作成します。
-イメージ名のタグは受講者ごとに異なるものを指定します。
+ビルド用のオブジェクト（BuildConfig）を作成します。\
+イメージ名のタグは個人名を指定します。\
 ※<your_name>の部分をプロジェクト名と同じ個人名に置き換えてください。
 
 ```
@@ -163,20 +164,21 @@ build.build.openshift.io/hello-nodejs-1 started
 Receiving source from STDIN as archive ...
 Caching blobs under "/var/cache/blobs".
 
-Pulling image node:12 ...
+Pulling image docker.io/library/node:12 ...
 ・・・
 Storing signatures
-STEP 1: FROM node:12
-STEP 2: WORKDIR /usr/src/app
+Adding transient rw bind mount for /run/secrets/rhsm
+STEP 1/9: FROM docker.io/library/node:12
+STEP 2/9: WORKDIR /usr/src/app
 ・・・
-STEP 10: COMMIT temp.builder.openshift.io/nodejs/hello-nodejs-1:b46a8e2e
+STEP 9/9: LABEL "io.openshift.build.name"="hello-nodejs-1" "io.openshift.build.namespace"="n-sakamaki"
 ・・・
 --> 4af61545975
 4af6154597539b2b259b70fa798c8c78ca75e3251ebeaa63fb6d056ca24a4930
 
-Pushing image image-registry.openshift-image-registry.svc:5000/nodejs/hello-nodejs:latest ...
+Pushing image image-registry.openshift-image-registry.svc:5000/n-sakamaki/hello-nodejs:n-sakamaki ...
 ・・・
-Successfully pushed image-registry.openshift-image-registry.svc:5000/nodejs/hello-nodejs@sha256:～
+Successfully pushed image-registry.openshift-image-registry.svc:5000/n-sakamaki/hello-nodejs@sha256:～
 Push successful
 ```
 
@@ -192,24 +194,24 @@ oc start-build：指定した BuildConfig を使って、イメージをビル�
 ```
 $ oc get all
 NAME                       READY   STATUS      RESTARTS   AGE
-pod/hello-nodejs-1-build   0/1     Completed   0          2m17s
+pod/hello-nodejs-1-build   0/1     Completed   0          7m50s
 
 NAME                                          TYPE     FROM     LATEST
 buildconfig.build.openshift.io/hello-nodejs   Docker   Binary   1
 
 NAME                                      TYPE     FROM     STATUS     STARTED         DURATION
-build.build.openshift.io/hello-nodejs-1   Docker   Binary   Complete   2 minutes ago   1m13s
+build.build.openshift.io/hello-nodejs-1   Docker   Binary   Complete   7 minutes ago   1m48s
 
-NAME                                          IMAGE REPOSITORY                                                                                             TAGS   UPDATED
-imagestream.image.openshift.io/hello-nodejs   default-route-openshift-image-registry.crc-dzk9v-master-0.crc.ygkb0acp1jwl.instruqt.io/nodejs/hello-nodejs   1.0    About a minute ago
+NAME                                          IMAGE REPOSITORY                                                                  TAGS         UPDATED
+imagestream.image.openshift.io/hello-nodejs   default-route-openshift-image-registry.apps-crc.testing/n-sakamaki/hello-nodejs   n-sakamaki   6 minutes ago
 
 $ oc describe is hello-nodejs
 Name:                   hello-nodejs
-Namespace:              nodejs
-Created:                3 minutes ago
+Namespace:              n-sakamaki
+Created:                8 minutes ago
 Labels:                 build=hello-nodejs
 Annotations:            openshift.io/generated-by=OpenShiftNewBuild
-Image Repository:       default-route-openshift-image-registry.crc-dzk9v-master-0.crc.ygkb0acp1jwl.instruqt.io/nodejs/hello-nodejs
+Image Repository:       default-route-openshift-image-registry.apps-crc.testing/n-sakamaki/hello-nodejs
 Image Lookup:           local=false
 Unique Images:          1
 Tags:                   1
@@ -219,12 +221,12 @@ Tags:                   1
 ## 4.3. イメージを使ったアプリケーションのデプロイ
 作成したイメージを使ってアプリケーションをデプロイします。
 
-**Step 1** 作成したイメージを使って、アプリケーションをデプロイします。
-※<your_name>はご自身で設定したタグ名を指定します。
+**Step 1** 作成したイメージを使って、アプリケーションをデプロイします。\
+※<your_name>は個人名を指定します。
 
 ```
-$ oc new-app hello-nodejs:<your_name>
---> Found image 6c41090 (2 minutes old) in image stream "nodejs/hello-nodejs" under tag "1.0" for "hello-nodejs:1.0"
+$ oc new-app hello-nodejs:n-sakamaki
+--> Found image e7546b1 (7 minutes old) in image stream "n-sakamaki/hello-nodejs" under tag "n-sakamaki" for "hello-nodejs:n-sakamaki"
 
 
 --> Creating resources ...
@@ -249,16 +251,16 @@ oc new-app：アプリケーションを新規に作成します。
 ```
 $ oc get all
 NAME                                READY   STATUS      RESTARTS   AGE
-pod/hello-nodejs-1-build            0/1     Completed   0          4m17s
-pod/hello-nodejs-6f7548645f-dcsnj   1/1     Running     0          61s
+pod/hello-nodejs-1-build            0/1     Completed   0          9m56s
+pod/hello-nodejs-847fc56464-6v45s   1/1     Running     0          28s
 
 ・・・
 
 NAME                   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
-service/hello-nodejs   ClusterIP   10.217.4.45   <none>        8080/TCP   62s
+service/hello-nodejs   ClusterIP   10.217.4.78   <none>        8080/TCP   28s
 
 NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/hello-nodejs   1/1     1            1           62s
+deployment.apps/hello-nodejs   1/1     1            1           28s
 
 ・・・
 ```
@@ -275,7 +277,7 @@ NAME           HOST/PORT                                  PATH   SERVICES       
 hello-nodejs   hello-nodejs-n-sakamaki.apps-crc.testing          hello-nodejs   8080-tcp                 None
 ```
 
-**Step 4** CLI/GUI からアクセスして確認してみます。
+**Step 4** CLI からアクセスして確認してみます。\
 ※route で確認できた URL にアクセスします。
 
 ```
@@ -300,16 +302,28 @@ curl: (6) Could not resolve host: hello-nodejs-n-sakamaki.apps-crc.testing
 $ echo '192.168.130.11 hello-nodejs-n-sakamaki.apps-crc.testing' | sudo tee -a /etc/hosts
 ```
 
-ブラウザでアクセスすると以下のように表示されます。
+**Step 5** 次はブラウザからアクセスして確認してみます。\
+手元端末のhostsファイルに route で確認したホスト名を追加します。
 
+```
+127.0.0.1 hello-nodejs-n-sakamaki.apps-crc.testing
+```
+
+コマンドプロンプト or PowerShell 等のコマンドラインから、SSHポートフォワードを行います。\
+※xxx.xxx.xxx.xxx はAzure VMのパブリックIPを指定する。\
+※ユーザー名（user01）の部分はご自身が使用するユーザー名を指定してください。
+```
+ssh user01@xxx.xxx.xxx.xxx -N -L 443:192.168.130.11:443 -L 80:192.168.130.11:80
+user01@xxx.xxx.xxx.xxx's password:
+```
+
+ブラウザでoc get routeで確認したURLにアクセスすると以下のように表示されます。
 ```
 URL例: http://hello-nodejs-n-sakamaki.apps-crc.testing
 ```
-
-※ブラウザからアクセスする際はSSHポートフォワーディングが有効になっていることを確認してください。
-
 ![4-3-1.jpg](./img/4-3-1.jpg)
 
+「5. アプリケーションデプロイ（Rolling Update、Blue-Green、Canary）」でも今回デプロイしたアプリケーションを使用するため、消さずに残しておきます。
 
 ### 【参考文献】
 

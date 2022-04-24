@@ -319,7 +319,7 @@ Important
 以下のコマンドの確認です。
 利用する Template は 「openshift」Project にあるため、「oc process」コマンドでは -n オプションで「openshift」プロジェクトを指定しています。
 
-一方で、| で yaml を渡した先の「oc create」コマンドではプロジェクトの指定がないため、カレントのプロジェクトである「jenkins」プロジェクトにオブジェクトを作成します。
+一方で、| で yaml を渡した先の「oc create」コマンドではプロジェクトの指定がないため、カレントプロジェクトにオブジェクトを作成します。
 
 oc process -n openshift jenkins-persistent -o yaml \
 -p JENKINS_SERVICE_NAME=jenkins2 \

@@ -29,30 +29,31 @@ $ oc login -u kubeadmin
 
 $ cd $HOME/nginx
 
-$ oc create dc nginx --image=nginx:1.17 --dry-run=client -o yaml > nginx.yaml
+$ oc create dc nginx --image=nginx:1.17 --dry-run=client -o yaml > nginx2.yaml
 
-$ vi nginx.yaml
+$ vi nginx2.yaml
 
 以下行を修正・追加
 ---------------------------------------------
 spec:
-  replicas: 2                         ★ 1 ⇒ 2 に修正
+  replicas: 2                         # 1 ⇒ 2 に修正
 ・・・
     spec:
       containers:
       - image: nginx:1.17
         name: default-container
         resources: {}
-        ports:                        ★追加
-        - containerPort: 80           ★追加
+        ports:                        # 追加
+        - containerPort: 80           # 追加
 ・・・
 ---------------------------------------------
 
-$ oc apply -f nginx.yaml
+$ oc apply -f nginx2.yaml
 deploymentconfig.apps.openshift.io/nginx created
 
 $ oc get all
 NAME                 READY   STATUS      RESTARTS   AGE
+・・・
 pod/nginx-1-8lxhd    1/1     Running     0          15s
 pod/nginx-1-9gxr8    1/1     Running     0          15s
 pod/nginx-1-deploy   0/1     Completed   0          17s
@@ -60,8 +61,12 @@ pod/nginx-1-deploy   0/1     Completed   0          17s
 NAME                            DESIRED   CURRENT   READY   AGE
 replicationcontroller/nginx-1   2         2         2       17s
 
+・・・
+
 NAME                                       REVISION   DESIRED   CURRENT   TRIGGERED BY
 deploymentconfig.apps.openshift.io/nginx   1          2         2         config
+
+・・・
 ```
 
 **Step 2** イメージのバージョンを指定したので、対象バージョンのイメージで Pod が起動しているか確認します。
@@ -113,11 +118,11 @@ nginx version: nginx/1.17.10
 ・・・
 ```
 
-**Step 3** アップデートする前に進捗確認用にターミナルをもう一つ起動します。
-手元端末から追加でVMにSSH接続でログインし、もう一つターミナルを用意します。
+**Step 3** アップデートする前に進捗確認用にターミナルをもう一つ起動します。\
+手元端末から追加でVMにSSH接続でログインし、もう一つターミナルを用意します。\
+※以降、最初から起動しているターミナルを「ターミナル1」、新しく追加したターミナルを「ターミナル2」と呼びます。
 
-新しくログインしたターミナルで project を確認し、pod の状態を監視するコマンドを実行しておきます。
-
+ターミナル2で project を確認し、pod の状態を監視するコマンドを実行しておきます。\
 ※projectが異なる場合、ご自身のprojectに切り替えてください。
 
 ```
@@ -126,6 +131,7 @@ Using project "n-sakamaki" on server "https://api.crc.testing:6443".
 
 $ oc get po -w
 NAME             READY   STATUS      RESTARTS   AGE
+・・・
 nginx-1-deploy   0/1     Completed   0          2m11s
 nginx-1-dvj5m    1/1     Running     0          2m1s
 nginx-1-l9xrz    1/1     Running     0          2m1s
@@ -140,7 +146,7 @@ Note
 ```
 
 **Step 4** イメージのバージョンを変更してみます。<br>
-※作業は最初から起動しているターミナルで実施します。<br>
+※作業はターミナル1で実施します。<br>
 ※今回は 1.17 から 1.18 にバージョンアップします
 
 ```
@@ -149,6 +155,7 @@ deploymentconfig.apps.openshift.io/nginx image updated
 
 $ oc get all
 NAME                 READY   STATUS      RESTARTS   AGE
+・・・
 pod/nginx-1-deploy   0/1     Completed   0          3m44s
 pod/nginx-2-5pqkp    1/1     Running     0          27s
 pod/nginx-2-deploy   0/1     Completed   0          31s
@@ -171,7 +178,7 @@ error: You must be logged in to the server (Unauthorized)
 Error from server: etcdserver: request timed out
 ```
 
-**Step 5** 後から起動したターミナルで実際の動きを確認します。
+**Step 5** ターミナル2で実際の動きを確認します。
 
 ```
 $ oc get po -w
@@ -211,7 +218,7 @@ nginx-1-dvj5m    1/1     Terminating         0          3m25s
 ※実行時のノードの状態により、出力の順序に若干のズレはあります
 
 **Step 6** 今度は curl を実行しながらアップデートしてみます。まずは curl を投げ続けます。<br>
-※作業は後から起動したターミナルで実施します。
+※作業はターミナル2で実施します。
 
 ```
 $ URL=http://$(oc get route nginx -o=jsonpath={.spec.host})
@@ -222,8 +229,8 @@ http://nginx-n-sakamaki.apps-crc.testing
 $ while sleep 1; do curl -Is $URL -o /dev/null -w '%{http_code}\n'; done
 ```
 
-**Step 7** 実際にアップデートしてみましょう
-※作業は最初に起動したターミナルで実施します。
+**Step 7** 実際にアップデートしてみましょう\
+※作業はターミナル1で実施します。
 
 ```
 $ oc set image dc nginx default-container=nginx:1.19
@@ -316,6 +323,7 @@ replication controller "nginx-4" successfully rolled out
 ```
 $ oc get po
 NAME             READY   STATUS      RESTARTS   AGE
+・・・
 nginx-1-deploy   0/1     Completed   0          10m
 nginx-2-deploy   0/1     Completed   0          7m43s
 nginx-3-deploy   0/1     Completed   0          2m53s
@@ -376,7 +384,7 @@ Important：
 https://access.redhat.com/documentation/ja-jp/openshift_container_platform/4.10/html/building_applications/deployment-strategies
 ```
 
-## 5.3. Blue-Green デプロイメント（動作未確認）
+## 5.3. Blue-Green デプロイメント
 ここではデプロイ方式の 1 つ Blue-Green デプロイメントを実施してみます。
 
 **Step 1** 「4 章」でデプロイしたアプリケーションにアクセスできることを確認します。<br>
@@ -401,12 +409,12 @@ $ vi server.js
 // App
 const app = express();
 app.get('/', (req, res) => {
-  res.send('Hello World !!');    ★「!!」を追加
+  res.send('Hello World !!');    #「!!」を追加
 });
 ・・・
 ```
 
-新しく「hello-nodejs2」という名前で BuildConfig を作成します。
+新しく「hello-nodejs2」という名前で BuildConfig を作成します。\
 ※<your_name>の部分は個人名を設定してください。
 
 ```
@@ -457,7 +465,7 @@ n-sakamaki2.0
       2 minutes ago
 ```
 
-**Step 3** 新しいバージョンのイメージを使ってアプリケーションをデプロイします
+**Step 3** 新しいバージョンのイメージを使ってアプリケーションをデプロイします。\
 ※<your_name>の部分は個人名を設定してください。
 
 ```
@@ -491,8 +499,8 @@ NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.apps/hello-nodejs    1/1     1            1           22m
 deployment.apps/hello-nodejs2   1/1     1            1           28s
 ・・・
-NAME                                    HOST/PORT                              PATH   SERVICES       PORT       TERMINATION   WILDCARD
-route.route.openshift.io/hello-nodejs   hello-nodejs-nodejs.apps-crc.testing          hello-nodejs   8080-tcp                 None
+NAME                                    HOST/PORT                                  PATH   SERVICES       PORT       TERMINATION   WILDCARD
+route.route.openshift.io/hello-nodejs   hello-nodejs-n-sakamaki.apps-crc.testing          hello-nodejs   8080-tcp                 None
 ```
 
 **Step 4** 「1.0」のアプリケーションから、「2.0」のアプリケーションに Blue-Green デプロイメントを実施します。
@@ -501,6 +509,7 @@ route.route.openshift.io/hello-nodejs   hello-nodejs-nodejs.apps-crc.testing    
 $ oc get route
 NAME           HOST/PORT                                  PATH   SERVICES       PORT       TERMINATION   WILDCARD
 hello-nodejs   hello-nodejs-n-sakamaki.apps-crc.testing          hello-nodejs   8080-tcp                 None
+・・・
 
 $ oc patch route/hello-nodejs -p '{"spec":{"to":{"name":"hello-nodejs2"}}}'
 route.route.openshift.io/hello-nodejs patched
@@ -544,7 +553,7 @@ spec:
   to:
     kind: Service
     name: hello-nodejs
-    weight: 100　★削除
+    weight: 100　# 削除
 ---ここから追加
     weight: 80
   alternateBackends:
@@ -585,12 +594,12 @@ $ oc edit route hello-nodejs
     alternateBackends:
     - kind: Service
       name: hello-nodejs2
-      weight: 50         ★50に変更
+      weight: 50         # 50に変更
 ・・・
     to:
       kind: Service
       name: hello-nodejs
-      weight: 50         ★50に変更
+      weight: 50         # 50に変更
 ・・・
 ```
 
@@ -629,20 +638,30 @@ Hello World !!
 ## 5.5. マニフェストファイルの更新
 最後にマニフェストの更新について確認していきます。<br>
 
-**Step 1** 新しく nginx の マニフェストファイル(yaml) を作成し、Pod をデプロイします。
+**Step 1** デプロイ済の nginx を削除します。
 
 ```
-$ oc create dc nginx --image=nginx --dry-run=client -o yaml > nginx.yaml
+$ cd $HOME/nginx
 
-$ oc apply -f nginx.yaml
+$ oc delete -f nginx2.yaml ; \
+oc delete route nginx ; \
+oc delete service nginx
+```
+
+**Step 2** 新しく nginx の マニフェストファイル(yaml) を作成し、Pod をデプロイします。
+
+```
+$ oc create dc nginx --image=nginx --dry-run=client -o yaml > nginx3.yaml
+
+$ oc apply -f nginx3.yaml
 
 $ oc get dc,po
 ```
 
-**Step 2** マニフェストファイルを更新します。
+**Step 3** マニフェストファイルを更新します。
 
 ```
-$ vi nginx.yaml
+$ vi nginx3.yaml
 
 ※以下を追加
 
@@ -654,17 +673,15 @@ spec:
       creationTimestamp: null
       labels:
         deployment-config.name: nginx
-        apps: nginx           ★追記
+        apps: nginx           # 追記
 ・・・
 
 ```
 
-**Step 3** 更新前のチェックとして、diff をとって確認します。
+**Step 4** 更新前のチェックとして、diff をとって確認します。
 
 ```
-$ oc diff -f nginx.yaml
-
-※少し時間がかかります
+$ oc diff -f nginx3.yaml
 
 @@ -5,11 +5,42 @@
 ・・・
