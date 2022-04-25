@@ -8,7 +8,7 @@
 
 **セクション**
 
-- 4.1. Node.js アプリケーション準備
+- 4.1. Node.js アプリケーション開発
 - 4.2. イメージのビルド
 - 4.3. イメージを使ったアプリケーションのデプロイ
 
@@ -225,7 +225,7 @@ Tags:                   1
 ※<your_name>は個人名を指定します。
 
 ```
-$ oc new-app hello-nodejs:n-sakamaki
+$ oc new-app hello-nodejs:<your_name>
 --> Found image e7546b1 (7 minutes old) in image stream "n-sakamaki/hello-nodejs" under tag "n-sakamaki" for "hello-nodejs:n-sakamaki"
 
 
@@ -243,7 +243,7 @@ Note
 oc new-app：アプリケーションを新規に作成します。
 作成はイメージだけではなく、ソースコード、Templateなどを指定してデプロイすることもできます。
 
-【参考】https://access.redhat.com/documentation/ja-jp/openshift_container_platform/4.4/html/applications/creating-applications-using-cli
+【参考】https://access.redhat.com/documentation/ja-jp/openshift_container_platform/4.10/html/building_applications/creating-applications-using-cli
 ```
 
 **Step 2** 作成されたアプリケーションを確認します。
@@ -323,7 +323,7 @@ URL例: http://hello-nodejs-n-sakamaki.apps-crc.testing
 ```
 ![4-3-1.jpg](./img/4-3-1.jpg)
 
-「5. アプリケーションデプロイ（Rolling Update、Blue-Green、Canary）」でも今回デプロイしたアプリケーションを使用するため、消さずに残しておきます。
+「5. アプリケーションデプロイ（Rolling Update、Blue-Green、Canary）」で今回デプロイしたアプリケーションを使用するため、消さずに残しておきます。
 
 ### 【参考文献】
 
