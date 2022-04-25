@@ -293,7 +293,8 @@ set-cookie: 1c847944e870f40f3d1bab6501bdea9b=8cfff468171a82f141446919e2e48b63; p
 cache-control: private
 ```
 
-※以下のように名前解決ができない場合はhostsファイルにエントリーを追加してください。
+※名前解決ができない場合は、以下のように Azure VM 上の hosts ファイルにエントリーを追加してください。\
+※ホスト名の部分は`oc get route`で確認したホスト名に置き換えて下さい。
 
 ```
 $ curl hello-nodejs-n-sakamaki.apps-crc.testing
@@ -317,7 +318,7 @@ ssh user01@xxx.xxx.xxx.xxx -N -L 443:192.168.130.11:443 -L 80:192.168.130.11:80
 user01@xxx.xxx.xxx.xxx's password:
 ```
 
-`oc get route`で確認したURLにブラウザからアクセスすると以下のように表示されます。
+route で確認したURLにブラウザからアクセスすると以下のように表示されます。
 ```
 URL例: http://hello-nodejs-n-sakamaki.apps-crc.testing
 ```

@@ -95,7 +95,9 @@ server: nginx/1.17.10
 ・・・
 ```
 
-※以下のように名前解決が上手くいかない場合は、hostsファイルに新しくエントリを追加してみてください。
+※名前解決ができない場合は、以下のように Azure VM 上の hosts ファイルにエントリーを追加してください。\
+※ホスト名の部分はご自身の route のホスト名に置き換えて下さい。
+
 ```
 $ curl -I $URL
 curl: (6) Could not resolve host: nginx-n-sakamaki.apps-crc.testing
